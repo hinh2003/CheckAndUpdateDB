@@ -4,6 +4,9 @@ require 'rubyXL'
 
 # this is ExcelController
 class ExcelController < ApplicationController
+
+  skip_before_action :verify_authenticity_token
+
   def index; end
 
   def read_excel
@@ -35,7 +38,7 @@ class ExcelController < ApplicationController
 
   def process_sheet(sheet)
     table_name = sheet.sheet_name
-    sheet_data = { table_name: table_name, columns: [] }
+    sheet_data = { table: table_name, columns: [] }
 
     sheet.each_with_index do |row, index|
       next if index < 4
@@ -44,7 +47,7 @@ class ExcelController < ApplicationController
       break if column_name.nil? || column_name.strip.empty?
 
       column_info = {
-        column_name: column_name,
+        name: column_name,
         data_type: row[3]&.value,
         not_null: row[4]&.value == 'Yes',
         default_value: row[5]&.value

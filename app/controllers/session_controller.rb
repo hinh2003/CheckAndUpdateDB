@@ -23,6 +23,6 @@ class SessionController < ApplicationController
 
   def process_authenticated_user(user)
     log_in user
-    redirect_to new_action_input_path
+    redirect_to connect_database_path
   end
 end

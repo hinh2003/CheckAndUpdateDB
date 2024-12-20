@@ -11,12 +11,10 @@ class DatabaseController < ApplicationController
     db_params = info_params
 
     begin
-      establish_db_connection(db_params)
-      check_db_connection
-
-      tables_info = fetch_tables_and_columns
-
-      render json: { message: 'Kết nối thành công!', tables: tables_info }
+      establish_db_connection(db_params) do
+        tables_info = fetch_tables_and_columns
+        render json: { tables: tables_info }
+      end
     rescue StandardError => e
       render json: { message: "Kết nối thất bại: #{e.message}" }, status: :unprocessable_entity
     end
@@ -29,13 +27,18 @@ class DatabaseController < ApplicationController
   end
 
   def establish_db_connection(db_params)
-    ActiveRecord::Base.establish_connection(
-      adapter: db_params[:adapter],
-      host: db_params[:host],
-      username: db_params[:username],
-      password: db_params[:password],
-      database: db_params[:database]
-    )
+    ActiveRecord::Base.connection_pool.with_connection do
+      temporary_connection = ActiveRecord::Base.establish_connection(
+        adapter: db_params[:adapter],
+        host: db_params[:host],
+        username: db_params[:username],
+        password: db_params[:password],
+        database: db_params[:database]
+      )
+      yield temporary_connection if block_given?
+    ensure
+      ActiveRecord::Base.establish_connection(Rails.application.config.database_configuration[Rails.env])
+    end
   end
 
   def check_db_connection
