@@ -1,55 +1,60 @@
 <div class="container mx-auto p-4">
-  <div class="flex space-x-4">
+  <div class="flex flex-wrap space-y-4 md:space-y-0 md:space-x-4">
     <div class="flex-1">
       <h1 class="text-2xl font-bold mb-4">Nhập thông tin kết nối cơ sở dữ liệu</h1>
-      <%= form_with url: connect_database_url, method: :post, local: true , id: 'database-connection-form' do |f| %>
+      <%= form_with url: connect_database_url, method: :post, remote: true, id: 'database-connection-form' do |f| %>
         <div class="mb-4">
           <label for="host" class="block text-lg font-medium text-gray-700">Host:</label>
-          <%= f.text_field :host, required: true, class: "block w-full p-2 border rounded-lg" %>
+          <%= f.text_field :host, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
 
         <div class="mb-4">
           <label for="username" class="block text-lg font-medium text-gray-700">Username:</label>
-          <%= f.text_field :username, required: true, class: "block w-full p-2 border rounded-lg" %>
+          <%= f.text_field :username, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
 
         <div class="mb-4">
           <label for="password" class="block text-lg font-medium text-gray-700">Password:</label>
-          <%= f.password_field :password, class: "block w-full p-2 border rounded-lg"%>
+          <%= f.password_field :password, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
 
         <div class="mb-4">
           <label for="database" class="block text-lg font-medium text-gray-700">Name Database:</label>
-          <%= f.text_field :database, required: true, class: "block w-full p-2 border rounded-lg" %>
+          <%= f.text_field :database, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
 
         <div class="mb-4">
           <label for="adapter" class="block text-lg font-medium text-gray-700">Adapter:</label>
-          <%= f.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2], %w[SQLite sqlite3]]), required: true, class: "block w-full p-2 border rounded-lg" %>
+          <%= f.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2], %w[SQLite sqlite3]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
-        <div class="mb-4">
-          <div id="progress-container" class="hidden w-full bg-gray-200 rounded-full">
+
+        <div class="mb-4 hidden" id="progress-container">
+          <div class="w-full bg-gray-200 rounded-full">
             <div id="progress-bar" class="bg-blue-500 text-xs font-medium text-center text-white p-0.5 leading-none rounded-full" style="width: 0%;">0%</div>
           </div>
         </div>
+
         <div class="flex justify-center">
-          <%= f.submit "Connection", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600", name:"btn-connect" %>
+          <%= f.submit "Connection", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600", name:"btn-connect", id:"connection" %>
         </div>
       <% end %>
-
     </div>
 
     <div class="flex-1">
       <h1 class="text-2xl font-bold mb-4">Nhập file muốn check</h1>
-      <%= form_with url: read_excel_path, method: :post, local: true, id: 'read-file-excel', multipart: true do |f| %>
-        <label for="cancel_sheet" class="block text-lg font-medium text-gray-700">Sheet Start</label>
-        <%= f.text_field :cancel_sheet, required: true, class: "block w-full p-2 border rounded-lg" %>
-
-        <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white" for="file_input">Upload file</label>
-        <%= f.file_field :file, required: true, class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400", id: 'file_input' %>
+      <%= form_with url: read_excel_path, method: :post, remote: true, id: 'read-file-excel', multipart: true do |f| %>
+        <div class="mb-4">
+          <label for="cancel_sheet" class="block text-lg font-medium text-gray-700">Sheet Start</label>
+          <%= f.text_field :cancel_sheet, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+        </div>
 
         <div class="mb-4">
-          <div id="progress-container2" class="hidden w-full bg-gray-200 rounded-full">
+          <label for="file_input" class="block text-lg font-medium text-gray-700">Upload file</label>
+          <%= f.file_field :file, required: true, class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring focus:ring-blue-300" %>
+        </div>
+
+        <div class="mb-4 hidden" id="progress-container2">
+          <div class="w-full bg-gray-200 rounded-full">
             <div id="progress-bar2" class="bg-blue-500 text-xs font-medium text-center text-white p-0.5 leading-none rounded-full" style="width: 0%;">0%</div>
           </div>
         </div>
@@ -58,153 +63,32 @@
           <%= f.submit "Read", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mt-2" %>
         </div>
       <% end %>
-      <button id="btn-compare" type="button" class="px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">So Sánh</button>
+      <div class="flex space-x-4 mt-4">
+        <button id="btn-compare" type="button" class="px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">So Sánh</button>
+        <button id="btn-show" type="button" class="hidden px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">Danh sách mô tả</button>
+        <button id="btn-add" type="button" class="px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">Thêm dữ liệu</button>
 
+      </div>
     </div>
+  </div>
 
+  <div class="mb-8">
+    <h2 class="text-2xl font-semibold mt-8 text-center">Danh sách bảng trong file SQL:</h2>
+    <div id="list-container" class="flex flex-wrap justify-center gap-6 mt-4"></div>
+  </div>
+
+  <div id="differences-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-2xl w-full h-[80%] max-h-[80%] overflow-y-auto p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-700">Danh sách mô tả </h3>
+        <button id="close-modal" class="text-gray-500 hover:text-red-500">&times;</button>
+      </div>
+      <div id="differences-container" class="space-y-2"></div>
+      <div class="mt-4 text-right">
+        <button id="close-modal-btn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Đóng</button>
+      </div>
+    </div>
   </div>
 </div>
 
-
-<script>
-    const dataApiDb = []
-    const dataApiRead = []
-
-    $(document).ready(function () {
-        $('#database-connection-form').on('submit', function (event) {
-            event.preventDefault();
-            const progressContainer1 = document.getElementById("progress-container");
-            const progressBar1 = document.getElementById("progress-bar");
-
-            const progressInterval = progressBar(progressContainer1, progressBar1);
-
-            const formData = $(this).serialize();
-
-            $.ajax({
-                url: '/connect_database',
-                method: 'POST',
-                data: formData,
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    clearInterval(progressInterval);
-                    progressBar1.style.width = "100%";
-                    progressBar1.textContent = "100%";
-                    dataApiDb.push(response)
-                    console.log(dataApiDb)
-
-                },
-                error: function (xhr, status, error) {
-                    clearInterval(progressInterval);
-                    progressBar1.style.width = "0%";
-                    progressBar1.textContent = "Kết nối thất bại!";
-                    alert("Có lỗi xảy ra khi kết nối đến cơ sở dữ liệu.");
-                }
-            });
-        });
-        $('#read-file-excel').on('submit', function (event) {
-            event.preventDefault();
-
-            const formData = new FormData(this);
-
-            const progressContainer2 = document.getElementById("progress-container2");
-            const progressBar2 = document.getElementById("progress-bar2");
-            const progressInterval2 = progressBar(progressContainer2, progressBar2);
-
-            $.ajax({
-                url: '/read_excel',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-CSRF-Token': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function (response) {
-                    clearInterval(progressInterval2);
-                    progressBar2.style.width = "100%";
-                    progressBar2.textContent = "100%";
-                    dataApiRead.push(response);
-                    console.log(dataApiRead)
-
-
-                },
-                error: function (xhr, status, error) {
-                    clearInterval(progressInterval2);
-                    progressBar2.style.width = "0%";
-                    progressBar2.textContent = "Đọc file thất bại!";
-                    alert("Có lỗi xảy ra khi đọc file.");
-                }
-            });
-        });
-        $('#btn-compare').on('click', function (event) {
-            function compareDbSchemas(apiDb, localDb) {
-                const apiTables = apiDb[0].tables;
-                const localTables = localDb[0].tables;
-                console.log(apiTables)
-                console.log(localTables)
-
-                apiTables.sort((a, b) => a.table.localeCompare(b.table));
-                localTables.sort((a, b) => a.table.localeCompare(b.table));
-
-                apiTables.forEach(apiTable => {
-                    const localTable = localTables.find(local => local.table === apiTable.table);
-
-                    if (!localTable) {
-                        console.log(`Bảng "${apiTable.table}" chỉ có trong API.`);
-                        return;
-                    }
-                    if (Array.isArray(apiTable.columns)) {
-                        apiTable.columns.forEach(apiColumn => {
-                            const localColumn = localTable.columns.find(localCol => localCol.name === apiColumn.name);
-
-                            if (!localColumn) {
-                                console.log(`Cột "${apiColumn.name}" chỉ có trong bảng "${apiTable.table}" của API.`);
-                            } else if (apiColumn.type !== localColumn.type) {
-                                console.log(`Cột "${apiColumn.name}" trong bảng "${apiTable.table}" có kiểu dữ liệu khác nhau: API - "${apiColumn.type}", Local - "${localColumn.type}"`);
-                            }
-                        });
-                    } else {
-                        console.log(`Bảng "${apiTable.table}" không có cột hợp lệ.`);
-                    }
-
-                    if (Array.isArray(localTable.columns)) {
-                        localTable.columns.forEach(localColumn => {
-                            if (!apiTable.columns.find(apiCol => apiCol.name === localColumn.name)) {
-                                console.log(`Cột "${localColumn.name}" chỉ có trong bảng "${apiTable.table}" của Local.`);
-                            }
-                        });
-                    }
-                });
-
-                localTables.forEach(localTable => {
-                    if (!apiTables.find(apiTable => apiTable.table === localTable.table)) {
-                        console.log(`Bảng "${localTable.table}" chỉ có trong Local.`);
-                    }
-                });
-            }
-
-            compareDbSchemas(dataApiDb, dataApiRead);
-        });
-    });
-    function progressBar(progressContainer, progressBar, onComplete) {
-        progressContainer.classList.remove("hidden");
-        progressBar.style.width = "0%";
-        progressBar.textContent = "0%";
-
-        let progress = 0;
-        const progressInterval = setInterval(() => {
-            if (progress < 90) {
-                progress += 10;
-                progressBar.style.width = `${progress}%`;
-                progressBar.textContent = `${progress}%`;
-            } else if (onComplete) {
-                onComplete(progressInterval);
-            }
-        }, 300);
-
-        return progressInterval;
-    }
-
-</script>
+<%= javascript_pack_tag 'action' %>

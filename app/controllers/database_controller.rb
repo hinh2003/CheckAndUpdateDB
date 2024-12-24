@@ -7,6 +7,29 @@ class DatabaseController < ApplicationController
 
   def index; end
 
+  def connect_and_import
+
+    establish_db_connection(info_params)
+
+    cancel_sheet = params[:cancel_sheet].to_i || 0
+
+    excel_importer = ExcelImporter.new(params[:file], cancel_sheet)
+
+    data = excel_importer.read_excel_file
+
+    import_tables_to_db(data)
+
+    render json: { message: 'Dữ liệu đã được import thành công!' }
+
+  rescue StandardError => e
+    render json: { error: "Có lỗi xảy ra: #{e.message}" }, status: :unprocessable_entity
+
+  ensure
+    ActiveRecord::Base.establish_connection(Rails.application.config.database_configuration[Rails.env])
+
+  end
+
+
   def connect
     db_params = info_params
 
@@ -58,7 +81,7 @@ class DatabaseController < ApplicationController
     ActiveRecord::Base.connection.columns(table_name).map do |column|
       {
         name: column.name,
-        type: column.sql_type,
+        data_type: simplify_data_type(column.sql_type),
         default: column.default,
         null: column.null
       }
@@ -70,5 +93,44 @@ class DatabaseController < ApplicationController
 
     flash[:danger] = 'Please log in.'
     redirect_to login_url
+  end
+
+  def simplify_data_type(sql_type)
+    sql_type.split('(').first
+  end
+
+  def import_tables_to_db(tables_info)
+    tables_info.each do |table_info|
+      create_table_if_not_exists(table_info)
+    end
+  end
+
+  def create_table_if_not_exists(table_info)
+    table_name = table_info[:table]
+    columns = table_info[:columns]
+
+    if columns.empty?
+      return
+    end
+
+    column_definitions = columns.map do |col|
+      "#{col[:name]} #{map_data_type(col[:data_type])} #{col[:null] ? 'NULL' : 'NOT NULL'}"
+    end.join(', ')
+
+    sql = "CREATE TABLE IF NOT EXISTS #{table_name} (#{column_definitions})"
+    ActiveRecord::Base.connection.execute(sql)
+  end
+
+  def map_data_type(data_type)
+    case data_type
+    when 'varchar'
+      'VARCHAR(255)'
+    when 'int'
+      'INT'
+    when 'boolean'
+      'BOOLEAN'
+    else
+      'TEXT'
+    end
   end
 end

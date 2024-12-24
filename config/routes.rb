@@ -6,6 +6,8 @@ Rails.application.routes.draw do
   get '/logout', to: 'session#destroy'
   resources :users
   get '/connect_database', to: 'database#index'
+  get '/import-data', to: 'database#index2'
+  post '/import-data', to: 'database#connect_and_import'
   post '/connect_database', to: 'database#connect'
   post '/read_excel', to: 'excel#read_excel'
 
