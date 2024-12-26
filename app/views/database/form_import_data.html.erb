@@ -25,7 +25,7 @@
 
     <div class="mb-4">
       <%= form.label :adapter, class: "block text-sm font-medium text-gray-700" %>
-      <%= form.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2], %w[SQLite sqlite3]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+      <%= form.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
     </div>
     <div class="mb-4">
       <class class="flex">
@@ -50,7 +50,7 @@
       <%= form.hidden_field :upload_type, id: "upload_type", value: params[:link].present? ? 'link' : 'file' %>
 
       <button type="button" id="toggle-upload-type" class="mt-2 text-indigo-500 hover:text-indigo-700">
-        <%= params[:link].present? ? 'Upload File Instead' : 'Use Link' %>
+        <%= params[:link].present? ? 'Upload File ' : 'Use Link' %>
       </button>
     </div>
 

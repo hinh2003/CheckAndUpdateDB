@@ -4,6 +4,9 @@ Rails.application.routes.draw do
   get '/login', to: 'session#new'
   post '/login', to: 'session#create'
   get '/logout', to: 'session#destroy'
+  get '/signup', to: 'users#new'
+  post '/signup', to: 'users#create'
+
   resources :users
   get '/connect_database', to: 'database#index'
   get '/import-data', to: 'database#form_import_data'
@@ -11,5 +14,5 @@ Rails.application.routes.draw do
   post '/connect_database', to: 'database#connect'
   post '/read_excel', to: 'excel#read_excel'
 
-  root to: 'home#index'
+  root to: 'database#index'
 end

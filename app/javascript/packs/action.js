@@ -28,14 +28,6 @@ $(document).ready(function () {
 
                 renderTables(response);
             },
-            error: function (xhr, status, error) {
-                clearInterval(progressInterval);
-                progressBar1.style.width = "0%";
-                alert("Có lỗi xảy ra khi kết nối đến cơ sở dữ liệu.");
-                $('#database-connection-form')[0].reset();
-
-
-            }
         });
     });
     $('#read-file-excel').on('submit', function (event) {
@@ -169,12 +161,32 @@ $(document).ready(function () {
             });
         }
         document.getElementById("btn-show").classList.remove("hidden");
+        $('#btn-compare').prop('disabled', true);
+        $('#btn-compare').addClass('opacity-50 cursor-not-allowed');
 
         compareDbSchemas(dataApiDb, dataApiRead);
     });
     $('#btn-show').on('click',function (){
         showDifferencesModal(differences)
     })
+    let connectionClicked = false;
+    let readClicked = false;
+
+    $('#connection').click(function () {
+        connectionClicked = true;
+        checkButtons();
+    });
+
+    $('#btn-read').click(function () {
+        readClicked = true;
+        checkButtons();
+    });
+
+    function checkButtons() {
+        if (connectionClicked && readClicked) {
+            $('#btn-compare').prop('disabled', false).removeClass('opacity-50 cursor-not-allowed');
+        }
+    }
 });
 function progressBar(progressContainer, progressBar, onComplete) {
     progressContainer.classList.remove("hidden");
@@ -214,9 +226,15 @@ function showDifferencesModal(differences) {
 
     modal.classList.remove("hidden");
 }
+$(document).ready(function () {
+    $('#btn-reset').click(function () {
+        location.reload();
+    });
+});
 
 document.getElementById("close-modal").addEventListener("click", () => {
     document.getElementById("differences-modal").classList.add("hidden");
+
 });
 
 document.getElementById("close-modal-btn").addEventListener("click", () => {

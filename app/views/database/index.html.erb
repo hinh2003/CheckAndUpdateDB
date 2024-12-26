@@ -3,7 +3,7 @@
   <div class="flex flex-wrap space-y-4 md:space-y-0 md:space-x-4">
     <div class="flex-1">
       <h1 class="text-2xl font-bold mb-4">Nhập thông tin kết nối cơ sở dữ liệu</h1>
-      <%= form_with url: connect_database_url, method: :post, remote: true, id: 'database-connection-form' do |f| %>
+      <%= form_with url: connect_database_url, method: :post, remote: true,local: false, id: 'database-connection-form' do |f| %>
         <div class="mb-4">
           <label for="host" class="block text-lg font-medium text-gray-700">Host:</label>
           <%= f.text_field :host, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
@@ -26,7 +26,7 @@
 
         <div class="mb-4">
           <label for="adapter" class="block text-lg font-medium text-gray-700">Adapter:</label>
-          <%= f.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2], %w[SQLite sqlite3]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+          <%= f.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
         </div>
 
         <div class="mb-4 hidden" id="progress-container">
@@ -43,7 +43,7 @@
 
     <div class="flex-1">
       <h1 class="text-2xl font-bold mb-4">Nhập file muốn check</h1>
-      <%= form_with url: read_excel_path, method: :post, remote: true, id: 'read-file-excel', multipart: true do |f| %>
+      <%= form_with url: read_excel_path, method: :post, remote: true,local: false, id: 'read-file-excel', multipart: true do |f| %>
         <div class="mb-4">
           <label for="cancel_sheet" class="block text-lg font-medium text-gray-700">
             Sheet Start
@@ -53,10 +53,24 @@
         </div>
 
         <div class="mb-4">
-          <label for="file_input" class="block text-lg font-medium text-gray-700">Upload file</label>
-          <%= f.file_field :file, required: true, class: "block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring focus:ring-blue-300" %>
-        </div>
+          <label for="file" class="block text-lg font-medium text-gray-700">
+            <span class="text">file</span>
+            <span class="ml-2 text-blue-500 cursor-pointer" title="Link file phải được để dưới dạng công khai">?</span>
+          </label>
+          <div id="file-upload-field1" class="<%= params[:link].present? ? 'hidden' : 'block' %> mt-1">
+            <%= f.file_field :file, class: "block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+          </div>
 
+          <div id="link-input-field1" class="<%= params[:link].present? ? 'block' : 'hidden' %> mt-1">
+            <%= f.text_field :link, placeholder: "Paste your link here", class: "block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+          </div>
+
+          <%= f.hidden_field :upload_type, id: "upload_type1", value: params[:link].present? ? 'link' : 'file' %>
+
+          <button type="button" id="toggle-upload-type1" class="mt-2 text-indigo-500 hover:text-indigo-700">
+            <%= params[:link].present? ? 'Upload File ' : 'Use Link' %>
+          </button>
+        </div>
         <div class="mb-4 hidden" id="progress-container2">
           <div class="w-full bg-gray-200 rounded-full">
             <div id="progress-bar2" class="bg-blue-500 text-xs font-medium text-center text-white p-0.5 leading-none rounded-full" style="width: 0%;">0%</div>
@@ -64,12 +78,13 @@
         </div>
 
         <div class="flex justify-center">
-          <%= f.submit "Read", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mt-2" %>
+          <%= f.submit "Read", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 mt-2" ,id:'btn-read' %>
         </div>
       <% end %>
       <div class="flex space-x-4 mt-4">
-        <button id="btn-compare" type="button" class="px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">So Sánh</button>
+        <button id="btn-compare" type="button" class="px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 disabled:opacity-50 cursor-not-allowed" disabled>So Sánh</button>
         <button id="btn-show" type="button" class="hidden px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">Danh sách mô tả</button>
+        <button id="btn-reset" type="button" class=" px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800">Làm mới</button>
 
       </div>
     </div>
@@ -95,3 +110,24 @@
 </div>
 
 <%= javascript_pack_tag 'action' %>
+<script>
+    document.getElementById('toggle-upload-type1').addEventListener('click', function () {
+        const fileUploadField = document.getElementById('file-upload-field1');
+        const linkInputField = document.getElementById('link-input-field1');
+        const toggleButton = document.getElementById('toggle-upload-type1');
+        const uploadTypeInput = document.getElementById('upload_type1');
+
+        if (fileUploadField.classList.contains('hidden')) {
+            fileUploadField.classList.remove('hidden');
+            linkInputField.classList.add('hidden');
+            toggleButton.textContent = 'Use Link ';
+            uploadTypeInput.value = 'file';
+        } else {
+            fileUploadField.classList.add('hidden');
+            linkInputField.classList.remove('hidden');
+            toggleButton.textContent = 'Upload File';
+            uploadTypeInput.value = 'link';
+        }
+    });
+
+</script>
