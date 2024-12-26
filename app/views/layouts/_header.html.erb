@@ -1,0 +1,26 @@
+<nav class="flex-wrap h-20	 flex itemhttps://18e1-118-70-67-83.ngrok-free.app/connect_databases-center justify-between bg-white">
+  <div class="flex items-center justify-between mb-10 lg:mb-0">
+    <button class="flex items-center justify-center border border-green-500 w-10 h-10 text-green-500 rounded-md outline-none lg:hidden ml-auto" @click="navbarOpen = !navbarOpen">
+      <i data-feather="menu"></i>
+    </button>
+  </div>
+
+  <ul class=" lg:block lg:flex flex-col lg:flex-row lg:items-center lg:space-x-20">
+    <% if logged_in? %>
+      <li class="font-medium  text-lg transition ease-in-out duration-300 mb-5 lg:mb-0">
+        <a href="/connect_database">Check</a>
+      </li>
+      <li class=" font-medium  text-lg transition ease-in-out duration-300 mb-5 lg:mb-0">
+        <a href="/import-data">Import table</a>
+      </li>
+      <li class="px-8 font-medium  text-lg transition ease-in-out duration-300 mb-5 lg:mb-0">
+        <a href="/logout">Logout</a>
+      </li>
+      <%else %>
+      <li class="px-8 font-medium  text-lg transition ease-in-out duration-300 mb-5 lg:mb-0">
+        <a href="/login">Login</a>
+      </li>
+    <% end %>
+
+  </ul>
+</nav>

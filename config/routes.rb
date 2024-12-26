@@ -1,3 +1,18 @@
+# frozen_string_literal: true
+
 Rails.application.routes.draw do
-  # For details on the DSL available within this file, see https://guides.rubyonrails.org/routing.html
+  get '/login', to: 'session#new'
+  post '/login', to: 'session#create'
+  get '/logout', to: 'session#destroy'
+  get '/signup', to: 'users#new'
+  post '/signup', to: 'users#create'
+
+  resources :users
+  get '/connect_database', to: 'database#index'
+  get '/import-data', to: 'database#form_import_data'
+  post '/import-data', to: 'database#connect_and_import'
+  post '/connect_database', to: 'database#connect'
+  post '/read_excel', to: 'excel#read_excel'
+
+  root to: 'database#index'
 end

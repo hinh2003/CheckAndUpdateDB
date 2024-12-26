@@ -1,0 +1,82 @@
+<% content_for :title, "Import database" %>
+<%= form_with(url: '/import-data', method: 'post', local: true, multipart: true) do |form| %>
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <h2 class="text-2xl font-bold mb-4">Kết nối CSDL và Import Excel</h2>
+
+    <div class="mb-4">
+      <%= form.label :host, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_field :host, class: "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", required: true %>
+    </div>
+
+    <div class="mb-4">
+      <%= form.label :username, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_field :username, class: "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", required: true %>
+    </div>
+
+    <div class="mb-4">
+      <%= form.label :password, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.password_field :password, class: "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", required: true %>
+    </div>
+
+    <div class="mb-4">
+      <%= form.label :database, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.text_field :database, class: "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", required: true %>
+    </div>
+
+    <div class="mb-4">
+      <%= form.label :adapter, class: "block text-sm font-medium text-gray-700" %>
+      <%= form.select :adapter, options_for_select([%w[PostgreSQL postgresql], %w[MySQL mysql2]]), required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+    </div>
+    <div class="mb-4">
+      <class class="flex">
+      <%= form.label :'Sheet start', class: " text-sm font-medium text-gray-700" %>
+      <span class="ml-2 text-blue-500 cursor-pointer" title="Là số sheet bắt đầu  mà bạn muốn bỏ quá VD: Bạn muốn bỏ qua 2 sheet đầu tiên thì nhập 2 vô ">?</span>
+        </class>
+      <%= form.text_field :cancel_sheet, class: "mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500", required: true %>
+    </div>
+
+
+    <div class="mb-4">
+      <%= form.label :file, class: "block text-sm font-medium text-gray-700" %>
+
+      <div id="file-upload-field" class="<%= params[:link].present? ? 'hidden' : 'block' %> mt-1">
+        <%= form.file_field :file, class: "block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+      </div>
+
+      <div id="link-input-field" class="<%= params[:link].present? ? 'block' : 'hidden' %> mt-1">
+        <%= form.text_field :link, placeholder: "Paste your link here", class: "block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" %>
+      </div>
+
+      <%= form.hidden_field :upload_type, id: "upload_type", value: params[:link].present? ? 'link' : 'file' %>
+
+      <button type="button" id="toggle-upload-type" class="mt-2 text-indigo-500 hover:text-indigo-700">
+        <%= params[:link].present? ? 'Upload File ' : 'Use Link' %>
+      </button>
+    </div>
+
+    <div class="mb-4">
+      <%= form.submit "Kết nối và Import", class: "w-full bg-indigo-600 text-white py-3 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50" %>
+    </div>
+  </div>
+<% end %>
+<script>
+    document.getElementById('toggle-upload-type').addEventListener('click', function () {
+        const fileUploadField = document.getElementById('file-upload-field');
+        const linkInputField = document.getElementById('link-input-field');
+        const toggleButton = document.getElementById('toggle-upload-type');
+        const uploadTypeInput = document.getElementById('upload_type');
+
+        if (fileUploadField.classList.contains('hidden')) {
+            fileUploadField.classList.remove('hidden');
+            linkInputField.classList.add('hidden');
+            toggleButton.textContent = 'Use Link ';
+            uploadTypeInput.value = 'file';
+        } else {
+            fileUploadField.classList.add('hidden');
+            linkInputField.classList.remove('hidden');
+            toggleButton.textContent = 'Upload File';
+            uploadTypeInput.value = 'link';
+        }
+    });
+
+</script>
