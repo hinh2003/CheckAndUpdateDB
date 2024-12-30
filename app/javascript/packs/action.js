@@ -52,7 +52,10 @@ $(document).ready(function () {
                 clearInterval(progressInterval2);
                 progressBar2.style.width = "100%";
                 progressBar2.textContent = "100%";
+                readClicked = true;
+                checkButtons();
                 dataApiRead.push(response);
+                alert("Đọc thành công")
 
 
             },
@@ -177,10 +180,7 @@ $(document).ready(function () {
         checkButtons();
     });
 
-    $('#btn-read').click(function () {
-        readClicked = true;
-        checkButtons();
-    });
+
 
     function checkButtons() {
         if (connectionClicked && readClicked) {
