@@ -44,7 +44,6 @@ module DatabaseHelper
     return if columns.empty?
 
     column_definitions = columns.map do |col|
-      # Sử dụng dấu nháy kép cho PostgreSQL, ngược lại là backtick cho MySQL
       column_name = adapter == 'postgresql' ? "\"#{col[:name].gsub(/\s+/, '')}\"" : "`#{col[:name].gsub(/\s+/, '')}`"
 
       column_def = "#{column_name} #{map_data_type(col[:data_type], adapter)}"
@@ -58,7 +57,6 @@ module DatabaseHelper
       column_def
     end.join(', ')
 
-    # Tạo câu lệnh SQL cho PostgreSQL và MySQL
     sql = case adapter
           when 'postgresql'
             "CREATE TABLE IF NOT EXISTS #{table_name} (#{column_definitions})"
@@ -68,7 +66,6 @@ module DatabaseHelper
             raise "Unsupported adapter: #{adapter}"
           end
 
-    # Thực thi câu lệnh SQL
     ActiveRecord::Base.connection.execute(sql)
   end
 
