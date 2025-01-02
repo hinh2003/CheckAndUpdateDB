@@ -11,12 +11,14 @@
 
         <div class="mb-4">
           <label for="username" class="block text-lg font-medium text-gray-700">Username:</label>
-          <%= f.text_field :username, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+          <%= f.text_field :username, required: true, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300",autocomplete: "username" %>
         </div>
 
         <div class="mb-4">
           <label for="password" class="block text-lg font-medium text-gray-700">Password:</label>
-          <%= f.password_field :password, class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300" %>
+          <%= f.password_field :password,
+                               class: "block w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-blue-300",
+                               autocomplete: "current-password" %>
         </div>
 
         <div class="mb-4">
@@ -39,6 +41,8 @@
           <%= f.submit "Connection", class: "bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600", name:"btn-connect", id:"connection" %>
         </div>
       <% end %>
+      <button id="export-btn">Export to Excel</button>
+
     </div>
 
     <div class="flex-1">
@@ -109,7 +113,6 @@
     </div>
   </div>
 </div>
-
 <%= javascript_pack_tag 'action' %>
 <script>
     document.getElementById('toggle-upload-type1').addEventListener('click', function () {
