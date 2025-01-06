@@ -342,6 +342,9 @@ function updateWorkbookWithApiData(workbook) {
 
     apiTables.forEach(apiTable => {
         const localTable = localTables.find(local => local.table === apiTable.table);
+        const localColumnNames = localTable ? localTable.columns.map(col => col.name) : [];
+        const newColumns = apiTable.columns.filter(apiCol => !localColumnNames.includes(apiCol.name));
+
         let sheet = workbook.getWorksheet(apiTable.table);
 
         if (!sheet) {
@@ -361,8 +364,7 @@ function updateWorkbookWithApiData(workbook) {
                     cell.fill = {
                         type: 'pattern',
                         pattern: 'solid',
-                        fgColor: { argb: '6fa8dc' },
-                        bgColor: { argb: '6fa8dc' }
+                        fgColor: { argb: '6fa8dc' }
                     };
                     cell.border = {
                         top: { style: 'thin' },
@@ -378,11 +380,20 @@ function updateWorkbookWithApiData(workbook) {
                     }
                 });
             });
+
+            addMissingColumns(sheet, apiTable, []);
         }
+        else {
+            const existingColumns = new Set();
+            sheet.getColumn(3).eachCell(cell => {
+                if (cell.value) existingColumns.add(cell.value);
+            });
 
-        const localColumnNames = localTable ? localTable.columns.map(col => col.name) : [];
-
-        addMissingColumns(sheet, apiTable, localColumnNames);
+            const columnsToAdd = newColumns.filter(col => !existingColumns.has(col.name));
+            if (columnsToAdd.length > 0) {
+                addMissingColumns(sheet, { ...apiTable, columns: columnsToAdd }, []);
+            }
+        }
     });
 }
 
@@ -391,21 +402,41 @@ function addMissingColumns(sheet, apiTable, localColumnNames) {
 
     apiTable.columns.forEach(apiColumn => {
         if (!localColumnNames.includes(apiColumn.name)) {
-            const row = sheet.addRow([
+            const row5 = sheet.getRow(5);
+
+            const hasContent = row5.values.some(value => value !== undefined && value !== null && value !== '');
+
+            if (hasContent) {
+                sheet.spliceRows(6, 0, []);
+
+                const row6 = sheet.getRow(6);
+                row5.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    const targetCell = row6.getCell(colNumber);
+
+                    targetCell.value = cell.value;
+
+                    targetCell.fill = cell.fill;
+                    targetCell.border = cell.border;
+                    targetCell.alignment = cell.alignment;
+                    targetCell.font = cell.font;
+                });
+            }
+
+            const row = sheet.getRow(5);
+            row.values = [
                 rowCount - 4,
                 '',
                 apiColumn.name,
                 apiColumn.data_type,
                 apiColumn.null ? 'Yes' : 'No',
                 apiColumn.default
-            ]);
+            ];
 
             row.eachCell((cell, colNumber) => {
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
-                    fgColor: { argb: 'FFFF0000' },
-                    bgColor: { argb: 'FFFF0000' }
+                    fgColor: { argb: 'FFFF0000' }
                 };
                 cell.border = {
                     top: { style: 'thin' },
@@ -413,10 +444,9 @@ function addMissingColumns(sheet, apiTable, localColumnNames) {
                     bottom: { style: 'thin' },
                     right: { style: 'thin' }
                 };
-
                 cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
-                sheet.getColumn(colNumber).width = Math.max(10, String(cell.value || '').length + 5);
+                sheet.getColumn(colNumber).width = Math.max(30, String(cell.value || '').length + 5);
             });
 
             rowCount++;
@@ -437,7 +467,7 @@ function addMissingColumns(sheet, apiTable, localColumnNames) {
 
                 cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
-                sheet.getColumn(colNumber).width = Math.max(10, String(cell.value || '').length + 5);
+                sheet.getColumn(colNumber).width = Math.max(30, String(cell.value || '').length + 5);
             });
         }
     });
