@@ -343,10 +343,11 @@ function updateWorkbookWithApiData(workbook) {
     apiTables.forEach(apiTable => {
         const localTable = localTables.find(local => local.table === apiTable.table);
         const localColumnNames = localTable ? localTable.columns.map(col => col.name) : [];
-        const newColumns = apiTable.columns.filter(apiCol => !localColumnNames.includes(apiCol.name));
+        const apiColumnNames = apiTable.columns.map(apiCol => apiCol.name);
+        const missingInApi = localColumnNames.filter(localCol => !apiColumnNames.includes(localCol));
+
 
         let sheet = workbook.getWorksheet(apiTable.table);
-
         if (!sheet) {
             sheet = workbook.addWorksheet(apiTable.table);
 
@@ -372,7 +373,6 @@ function updateWorkbookWithApiData(workbook) {
                         bottom: { style: 'thin' },
                         right: { style: 'thin' }
                     };
-
                     cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
 
                     if (index === 3) {
@@ -380,19 +380,26 @@ function updateWorkbookWithApiData(workbook) {
                     }
                 });
             });
-
-            addMissingColumns(sheet, apiTable, []);
         }
-        else {
-            const existingColumns = new Set();
-            sheet.getColumn(3).eachCell(cell => {
-                if (cell.value) existingColumns.add(cell.value);
+
+        addMissingColumns(sheet, apiTable, localColumnNames);
+
+        if (missingInApi.length > 0) {
+            const existingColumnCells = [];
+            sheet.getColumn(3).eachCell((cell, rowNumber) => {
+                if (rowNumber >= 5 && cell.value && missingInApi.includes(cell.value)) {
+                    existingColumnCells.push({ cell, rowNumber });
+                    console.log(existingColumnCells)
+                }
             });
 
-            const columnsToAdd = newColumns.filter(col => !existingColumns.has(col.name));
-            if (columnsToAdd.length > 0) {
-                addMissingColumns(sheet, { ...apiTable, columns: columnsToAdd }, []);
-            }
+            existingColumnCells.forEach(({ cell, rowNumber }) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '36454F' }
+                };
+            });
         }
     });
 }
