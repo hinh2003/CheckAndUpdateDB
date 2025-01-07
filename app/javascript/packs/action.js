@@ -1,8 +1,10 @@
 const dataApiDb = []
 const dataApiRead = []
 const differences = [];
+const datapi = [];
 
 $(document).ready(function () {
+
     $('#database-connection-form').on('submit', function (event) {
         event.preventDefault();
         const progressContainer1 = document.getElementById("progress-container");
@@ -24,8 +26,7 @@ $(document).ready(function () {
                 progressBar1.style.width = "100%";
                 progressBar1.textContent = "100%";
                 dataApiDb.push(response);
-                console.log(dataApiDb);
-
+                datapi.push(response)
                 renderTables(response);
             },
         });
@@ -52,7 +53,10 @@ $(document).ready(function () {
                 clearInterval(progressInterval2);
                 progressBar2.style.width = "100%";
                 progressBar2.textContent = "100%";
+                readClicked = true;
+                checkButtons();
                 dataApiRead.push(response);
+                alert("Đọc thành công")
 
 
             },
@@ -160,13 +164,14 @@ $(document).ready(function () {
                 }
             });
         }
+
         document.getElementById("btn-show").classList.remove("hidden");
         $('#btn-compare').prop('disabled', true);
         $('#btn-compare').addClass('opacity-50 cursor-not-allowed');
 
         compareDbSchemas(dataApiDb, dataApiRead);
     });
-    $('#btn-show').on('click',function (){
+    $('#btn-show').on('click', function () {
         showDifferencesModal(differences)
     })
     let connectionClicked = false;
@@ -177,10 +182,6 @@ $(document).ready(function () {
         checkButtons();
     });
 
-    $('#btn-read').click(function () {
-        readClicked = true;
-        checkButtons();
-    });
 
     function checkButtons() {
         if (connectionClicked && readClicked) {
@@ -188,6 +189,7 @@ $(document).ready(function () {
         }
     }
 });
+
 function progressBar(progressContainer, progressBar, onComplete) {
     progressContainer.classList.remove("hidden");
     progressBar.style.width = "0%";
@@ -206,6 +208,7 @@ function progressBar(progressContainer, progressBar, onComplete) {
 
     return progressInterval;
 }
+
 function showDifferencesModal(differences) {
     const modal = document.getElementById("differences-modal");
     const differencesContainer = document.getElementById("differences-container");
@@ -226,6 +229,7 @@ function showDifferencesModal(differences) {
 
     modal.classList.remove("hidden");
 }
+
 $(document).ready(function () {
     $('#btn-reset').click(function () {
         location.reload();
@@ -290,4 +294,188 @@ function renderTables(response) {
     });
 
     tablesListContainer.innerHTML = tableHTML;
+}
+
+document.getElementById('export-btn').addEventListener('click', async function () {
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+
+    if (!file) {
+        alert('Please select an Excel file first!');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        try {
+            const buffer = e.target.result;
+            const workbook = new ExcelJS.Workbook();
+            await workbook.xlsx.load(buffer);
+            updateWorkbookWithApiData(workbook);
+
+            const newFileName = file.name.replace(/\.xlsx$/, '_updated.xlsx');
+
+            const data = await workbook.xlsx.writeBuffer();
+            const blob = new Blob([data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error processing file:', err);
+            alert('An error occurred while processing the file.');
+        }
+    };
+
+    reader.readAsArrayBuffer(file);
+});
+
+function updateWorkbookWithApiData(workbook) {
+    const apiTables = dataApiDb[0]?.tables || [];
+    const localTables = dataApiRead[0]?.tables || [];
+
+    apiTables.forEach(apiTable => {
+        const localTable = localTables.find(local => local.table === apiTable.table);
+        const localColumnNames = localTable ? localTable.columns.map(col => col.name) : [];
+        const apiColumnNames = apiTable.columns.map(apiCol => apiCol.name);
+        const missingInApi = localColumnNames.filter(localCol => !apiColumnNames.includes(localCol));
+
+        let sheet = workbook.getWorksheet(apiTable.table);
+        if (!sheet) {
+            sheet = workbook.addWorksheet(apiTable.table);
+
+            const headerRows = [
+                ['テーブル名', '', apiTable.table],
+                ['論理名'],
+                ['備考'],
+                ['No.', '', '物理名', 'データ型', 'NOT NULL', '初期値']
+            ];
+
+            headerRows.forEach((rowContent, index) => {
+                const row = sheet.addRow(rowContent);
+
+                row.eachCell((cell, colNumber) => {
+                    cell.fill = {
+                        type: 'pattern',
+                        pattern: 'solid',
+                        fgColor: { argb: '6fa8dc' }
+                    };
+                    cell.border = {
+                        top: { style: 'thin' },
+                        left: { style: 'thin' },
+                        bottom: { style: 'thin' },
+                        right: { style: 'thin' }
+                    };
+                    cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+                    if (index === 3) {
+                        sheet.getColumn(colNumber).width = Math.max(10, rowContent[colNumber - 1]?.length || 10);
+                    }
+                });
+            });
+        }
+
+        if (typeof addMissingColumns === 'function') {
+            addMissingColumns(sheet, apiTable, localColumnNames);
+        }
+
+        if (missingInApi.length > 0) {
+            const existingColumnCells = [];
+            sheet.getColumn(3).eachCell((cell, rowNumber) => {
+                if (rowNumber >= 5 && cell.value && missingInApi.includes(cell.value)) {
+                    existingColumnCells.push({ cell, rowNumber });
+                }
+            });
+
+            existingColumnCells.forEach(({ cell }) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: '36454F' }
+                };
+            });
+        }
+    });
+}
+
+function addMissingColumns(sheet, apiTable, localColumnNames) {
+    let rowCount = sheet.rowCount + 1;
+
+    apiTable.columns.forEach(apiColumn => {
+        if (!localColumnNames.includes(apiColumn.name)) {
+            const row5 = sheet.getRow(5);
+
+            const hasContent = row5.values.some(value => value !== undefined && value !== null && value !== '');
+
+            if (hasContent) {
+                sheet.spliceRows(6, 0, []);
+
+                const row6 = sheet.getRow(6);
+                row5.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                    const targetCell = row6.getCell(colNumber);
+
+                    targetCell.value = cell.value;
+
+                    targetCell.fill = cell.fill;
+                    targetCell.border = cell.border;
+                    targetCell.alignment = cell.alignment;
+                    targetCell.font = cell.font;
+                });
+            }
+
+            const row = sheet.getRow(5);
+            row.values = [
+                rowCount - 4,
+                '',
+                apiColumn.name,
+                apiColumn.data_type,
+                apiColumn.null ? 'Yes' : 'No',
+                apiColumn.default
+            ];
+
+            row.eachCell((cell, colNumber) => {
+                cell.fill = {
+                    type: 'pattern',
+                    pattern: 'solid',
+                    fgColor: { argb: 'FFFF0000' }
+                };
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+                sheet.getColumn(colNumber).width = Math.max(30, String(cell.value || '').length + 5);
+            });
+
+            rowCount++;
+        }
+    });
+
+    sheet.eachRow((row, rowIndex) => {
+        if (rowIndex > 4) {
+            row.getCell(1).value = rowIndex - 4;
+
+            row.eachCell((cell, colNumber) => {
+                cell.border = {
+                    top: { style: 'thin' },
+                    left: { style: 'thin' },
+                    bottom: { style: 'thin' },
+                    right: { style: 'thin' }
+                };
+
+                cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+
+                sheet.getColumn(colNumber).width = Math.max(30, String(cell.value || '').length + 5);
+            });
+        }
+    });
 }
