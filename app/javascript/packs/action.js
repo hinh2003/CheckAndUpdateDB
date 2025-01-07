@@ -346,7 +346,6 @@ function updateWorkbookWithApiData(workbook) {
         const apiColumnNames = apiTable.columns.map(apiCol => apiCol.name);
         const missingInApi = localColumnNames.filter(localCol => !apiColumnNames.includes(localCol));
 
-
         let sheet = workbook.getWorksheet(apiTable.table);
         if (!sheet) {
             sheet = workbook.addWorksheet(apiTable.table);
@@ -382,18 +381,19 @@ function updateWorkbookWithApiData(workbook) {
             });
         }
 
-        addMissingColumns(sheet, apiTable, localColumnNames);
+        if (typeof addMissingColumns === 'function') {
+            addMissingColumns(sheet, apiTable, localColumnNames);
+        }
 
         if (missingInApi.length > 0) {
             const existingColumnCells = [];
             sheet.getColumn(3).eachCell((cell, rowNumber) => {
                 if (rowNumber >= 5 && cell.value && missingInApi.includes(cell.value)) {
                     existingColumnCells.push({ cell, rowNumber });
-                    console.log(existingColumnCells)
                 }
             });
 
-            existingColumnCells.forEach(({ cell, rowNumber }) => {
+            existingColumnCells.forEach(({ cell }) => {
                 cell.fill = {
                     type: 'pattern',
                     pattern: 'solid',
